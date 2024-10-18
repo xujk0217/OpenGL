@@ -1,0 +1,48 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++ 建置使用中檔案",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-std=c++17",
+				"-fcolor-diagnostics",
+				"-fansi-escape-codes",
+				"-Wall",
+				"-g",
+
+				"-I/opt/homebrew/opt/glew/include",
+				"-I/opt/homebrew/opt/freeglut/include",
+				"-I/opt/homebrew/opt/glfw/include",
+				"-I/opt/homebrew/opt/glm/include",
+
+				"-L/opt/homebrew/opt/glew/lib",
+				"-L/opt/homebrew/opt/freeglut/lib",
+				"-L/opt/homebrew/opt/glfw/lib",
+				"-L/opt/homebrew/opt/glm/lib",
+				
+				"${fileDirname}/*.cpp",
+
+				"-framework",
+				"OpenGL",
+				"-lglut",
+				"-lGLEW",
+				"-lglfw",
+				"-o",
+				"${fileDirname}/main",
+
+			
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "編譯器: /usr/bin/g++",	
+		},
+		
+	]
+}

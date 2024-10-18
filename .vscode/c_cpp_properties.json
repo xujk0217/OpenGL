@@ -1,0 +1,23 @@
+ {
+        "configurations": [
+            {
+                "name": "Mac",
+                "includePath": [
+                    "${workspaceFolder}/**",
+                    "/opt/homebrew/opt/freeglut/include",
+                    "/opt/homebrew/opt/glfw/include",
+                    "/opt/homebrew/opt/glew/include",
+                    "/opt/homebrew/opt/glm/include"
+                ],
+                "defines": [],
+                "macFrameworkPath": [
+                    "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+                ],
+                "compilerPath": "/usr/bin/g++",
+                "cStandard": "c17",
+                "cppStandard": "c++17",
+                "intelliSenseMode": "macos-clang-arm64"
+            }
+        ],
+        "version": 4
+    }
