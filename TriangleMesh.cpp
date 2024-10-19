@@ -1,7 +1,7 @@
 #include "TriangleMesh.h"
 #include <unordered_map>
 
-// Hash function for VertexPTN to use in unordered_map.
+// Hash 是用來將 VertexPTN 轉換成一個 hash 值，這樣就可以用來當作 unordered_map 的 key，這樣就可以快速查找重複的頂點
 struct VertexPTNHash
 {
 	std::size_t operator()(const VertexPTN &v) const
@@ -11,7 +11,7 @@ struct VertexPTNHash
 	}
 };
 
-// Equality operator for VertexPTN to use in unordered_map.
+// == 的定義，用來比較兩個 VertexPTN 是否相等
 bool operator==(const VertexPTN &lhs, const VertexPTN &rhs)
 {
 	return lhs.position == rhs.position && lhs.normal == rhs.normal && lhs.texcoord == rhs.texcoord;
@@ -50,7 +50,7 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 		return false;
 	}
 
-	// Read the file line by line.
+	// 讀取 obj 檔案中的每一行
 	std::string line;
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> normals;
@@ -64,64 +64,58 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 
 		if (type == "v")
 		{
-			// Read vertex position.
 			glm::vec3 pos;
 			iss >> pos.x >> pos.y >> pos.z;
 			positions.push_back(pos);
 		}
 		else if (type == "vt")
 		{
-			// Read vertex texture coordinate.
 			glm::vec2 texcoord;
 			iss >> texcoord.x >> texcoord.y;
 			texcoords.push_back(texcoord);
 		}
 		else if (type == "vn")
 		{
-			// Read vertex normal.
 			glm::vec3 normal;
 			iss >> normal.x >> normal.y >> normal.z;
 			normals.push_back(normal);
 		}
 		else if (type == "f")
 		{
-			// Read face data.
 			std::vector<std::string> faceData;
 			std::string vertexStr;
 
-			// Read all vertices for this face.
 			while (iss >> vertexStr)
 			{
 				faceData.push_back(vertexStr);
 			}
 
-			// Check if we have enough vertices to form triangles.
+			// 避免小於 3 個頂點的情況
 			if (faceData.size() >= 3)
 			{
-				// Create a vertex for the first vertex.
+				// 創第一個頂點
 				std::istringstream firstVertexStream(faceData[0]);
 				int firstIndex[3] = {0, 0, 0}; // Position, texcoord, normal
 				VertexPTN firstVertex;
 
-				// Parse the first vertex data.
 				std::string indexStr;
 				for (int j = 0; j < 3; ++j)
 				{
 					std::getline(firstVertexStream, indexStr, '/');
 					if (!indexStr.empty())
 					{
-						firstIndex[j] = std::stoi(indexStr) - 1; // OBJ is 1-indexed
+						firstIndex[j] = std::stoi(indexStr) - 1; // OBJ 檔案的 index 從 1 開始，所以要減 1
 					}
 				}
 
-				// Assign position, texcoord, and normal for the first vertex.
+				// 把 position, texcoord, normal 賦值給 firstVertex
 				firstVertex.position = positions[firstIndex[0]];
 				if (firstIndex[1] >= 0)
 					firstVertex.texcoord = texcoords[firstIndex[1]];
 				if (firstIndex[2] >= 0)
 					firstVertex.normal = normals[firstIndex[2]];
 
-				// Store the first vertex index.
+				// Store 起來
 				unsigned int firstVertexIndex;
 				if (uniqueVertices.find(firstVertex) == uniqueVertices.end())
 				{
@@ -135,12 +129,11 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 					firstVertexIndex = uniqueVertices[firstVertex];
 				}
 
-				// Process the second vertex.
+				// 創第二個頂點
 				std::istringstream secondVertexStream(faceData[1]);
 				int secondIndex[3] = {0, 0, 0};
 				VertexPTN secondVertex;
 
-				// Parse the second vertex data.
 				for (int j = 0; j < 3; ++j)
 				{
 					std::getline(secondVertexStream, indexStr, '/');
@@ -150,14 +143,12 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 					}
 				}
 
-				// Assign position, texcoord, and normal for the second vertex.
 				secondVertex.position = positions[secondIndex[0]];
 				if (secondIndex[1] >= 0)
 					secondVertex.texcoord = texcoords[secondIndex[1]];
 				if (secondIndex[2] >= 0)
 					secondVertex.normal = normals[secondIndex[2]];
 
-				// Store the second vertex index.
 				unsigned int secondVertexIndex;
 				if (uniqueVertices.find(secondVertex) == uniqueVertices.end())
 				{
@@ -171,12 +162,12 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 					secondVertexIndex = uniqueVertices[secondVertex];
 				}
 
-				// Iterate over the remaining vertices to form triangles.
+				// 依序處理第三個頂點以後的頂點
 				for (size_t i = 2; i < faceData.size(); ++i)
 				{
 					VertexPTN vertex;
 
-					// Parse the current vertex data.
+					// 處理第 i 個頂點
 					std::istringstream currentVertexStream(faceData[i]);
 					int indices[3] = {0, 0, 0};
 					for (int j = 0; j < 3; ++j)
@@ -188,14 +179,14 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 						}
 					}
 
-					// Assign position, texcoord, and normal based on the current vertex data.
+					// 把 position, texcoord, normal 賦值給 vertex
 					vertex.position = positions[indices[0]];
 					if (indices[1] >= 0)
 						vertex.texcoord = texcoords[indices[1]];
 					if (indices[2] >= 0)
 						vertex.normal = normals[indices[2]];
 
-					// Check if the vertex has already been added.
+					// 檢查是否已經存在
 					unsigned int currentVertexIndex;
 					if (uniqueVertices.find(vertex) == uniqueVertices.end())
 					{
@@ -209,17 +200,17 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 						currentVertexIndex = uniqueVertices[vertex];
 					}
 
-					// Form triangles using the first, second, and current vertices.
-					vertexIndices.push_back(firstVertexIndex);	 // First vertex.
-					vertexIndices.push_back(secondVertexIndex);	 // Second vertex for the first triangle.
+					// 讓三角型為：第1, i-1, i個頂點組成
+					vertexIndices.push_back(firstVertexIndex);	 // 固定的第一個頂點
+					vertexIndices.push_back(secondVertexIndex);	 // 第二個頂點（上一個 currentVertexIndex）
 					vertexIndices.push_back(currentVertexIndex); // Current vertex.
 
-					// Update secondVertexIndex for the next iteration.
+					// 更新 secondVertexIndex
 					secondVertexIndex = currentVertexIndex;
 				}
 
-				// Increase the triangle count.
-				numTriangles += faceData.size() - 2; // Number of triangles formed.
+				// 更新三角形數量
+				numTriangles += faceData.size() - 2;
 			}
 		}
 	}
@@ -230,7 +221,7 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 		// Add your code here.
 		// ...
 
-		// 步驟 1：計算包圍盒 (Bounding Box)
+		// 計算bBounding Box, 找到最小和最大的位置
 		glm::vec3 minPos = vertices[0].position;
 		glm::vec3 maxPos = vertices[0].position;
 
@@ -240,14 +231,14 @@ bool TriangleMesh::LoadFromFile(const std::string &filePath, const bool normaliz
 			maxPos = glm::max(maxPos, vertex.position);
 		}
 
-		// 步驟 2：計算最大邊長 (maxDimension)
+		// 計算最大邊長 (maxDimension)
 		glm::vec3 size = maxPos - minPos;
 		float maxDimension = std::max(size.x, std::max(size.y, size.z)); // 找到最大邊長
 
-		// 步驟 3：計算包圍盒中心點 (objCenter)
+		// 計算包圍盒中心點 (objCenter)
 		glm::vec3 objCenter = (minPos + maxPos) / 2.0f;
 
-		// 步驟 4：平移並縮放頂點
+		// 平移並縮放頂點
 		for (auto &vertex : vertices)
 		{
 			vertex.position = (vertex.position - objCenter) / maxDimension; // 平移到中心並縮放

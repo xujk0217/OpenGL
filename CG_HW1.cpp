@@ -24,8 +24,8 @@
 const int screenWidth = 600;
 const int screenHeight = 600;
 TriangleMesh* mesh = nullptr;
-std::vector<std::string> modelNames;  // List of model names
-std::string currentModel = "Bunny.obj";  // Default model name
+std::vector<std::string> modelNames;  //在 TestModels_HW1 資料夾下的模型名稱
+std::string currentModel = "Bunny.obj";  // 模型名稱
 
 // Function prototypes.
 void SetupRenderState();
@@ -49,7 +49,9 @@ void RenderSceneCB()
     // Add your code here.
     // ...
 
+    // mesh 是 TriangleMesh 類別的物件，假如 mesh 不是 nullptr，就繪製 mesh
     if (mesh) {
+        // 設定 VBO 和 IBO
         glBindBuffer(GL_ARRAY_BUFFER, mesh->GetVboId());
 
         glEnableVertexAttribArray(0);
@@ -61,7 +63,7 @@ void RenderSceneCB()
 
         glDisableVertexAttribArray(0);
     }
-    // Render current model name.
+    // 文字顯示
     RenderText("Current Model: " + currentModel, -0.9f, 0.9f);
     RenderText("Right click to change model", -0.9f, 0.85f);
     
@@ -69,10 +71,10 @@ void RenderSceneCB()
 }
 
 void RenderText(const std::string& text, float x, float y) {
-    glColor3f(1.0f, 1.0f, 1.0f); // Set text color to white
-    glRasterPos2f(x, y); // Set the position for the text
+    glColor3f(1.0f, 1.0f, 1.0f); // 文字顏色
+    glRasterPos2f(x, y); // 文字位置
     for (char c : text) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c); // Render each character
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c); 
     }
 }
 
@@ -122,6 +124,7 @@ void ReleaseResources()
     // Release memory if needed.
     // Add your code here.
     // ...
+    // 如果 mesh 不是 nullptr，就刪除 mesh
     if (mesh) {
         delete mesh;
         mesh = nullptr;
@@ -145,6 +148,7 @@ void SetupRenderState()
 // You can alter the parameters for dynamically loading a model.
 void SetupScene(const std::string& modelPath)
 {
+    // 先 release 舊的，再建立新的
     ReleaseResources();
     mesh = new TriangleMesh();
     mesh->LoadFromFile(modelPath);
@@ -176,13 +180,13 @@ void SetupScene(const std::string& modelPath)
     mesh->CreateBuffers();
 }
 
-// Function to create model menu and handle selection.
+// 處理右鍵選單
 void ShowModelMenu(int value) {
-    if (value < 0 || value >= modelNames.size()) return;  // Invalid selection
-    SetupScene("TestModels_HW1/"+modelNames[value]);  // Load the selected model
+    if (value < 0 || value >= modelNames.size()) return;
+    SetupScene("TestModels_HW1/"+modelNames[value]); // 載入選擇的模型
 }
 
-// Mouse callback function for right click.
+// 又鍵選單
 void MouseButtonCB(int button, int state, int x, int y) {
     if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
         glutCreateMenu(ShowModelMenu);
@@ -193,10 +197,10 @@ void MouseButtonCB(int button, int state, int x, int y) {
     }
 }
 
-// Function to load model filenames from a directory.
+// 載入 TestModels_HW1 資料夾裡面的模型名稱
 void LoadModelNames(const std::string& directory) {
     for (const auto& entry : std::filesystem::directory_iterator(directory)) {
-        if (entry.path().extension() == ".obj") {
+        if (entry.path().extension() == ".obj") {   
             modelNames.push_back(entry.path().filename().string());
         }
     }
@@ -204,6 +208,7 @@ void LoadModelNames(const std::string& directory) {
 
 int main(int argc, char** argv)
 {
+    // 先載入模型名稱
     LoadModelNames("TestModels_HW1");
 
     // Setting window properties.
@@ -224,7 +229,7 @@ int main(int argc, char** argv)
 
     // Initialization.
     SetupRenderState();
-    currentModel = modelNames[0];
+    currentModel = modelNames[0]; // 預設載入第一個模型
     SetupScene("TestModels_HW1/" + currentModel);
 
     // Register callback functions.
